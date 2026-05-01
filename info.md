@@ -1,1 +1,1 @@
-# Data Model for key entities (Supabase DB) 
+# Supabase Database Model + Calendar for Engineering Work

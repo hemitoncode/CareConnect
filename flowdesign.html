@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CareConnect Wireflow Map</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #eef3fa;
+      --ink: #12243a;
+      --muted: #5b6e87;
+      --line: #7e91aa;
+      --line-soft: #a8b7ca;
+      --card: #ffffff;
+      --onboarding: #2563eb;
+      --discover: #0f766e;
+      --pipeline: #b45309;
+      --profile: #7c3aed;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 24px;
+      background:
+        radial-gradient(circle at 8% 2%, #dbeafe 0%, transparent 30%),
+        radial-gradient(circle at 94% 0%, #ddd6fe 0%, transparent 28%),
+        var(--bg);
+      color: var(--ink);
+      font-family: "Plus Jakarta Sans", sans-serif;
+    }
+
+    .shell {
+      border: 1px solid #cfd9e8;
+      border-radius: 20px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.8);
+      box-shadow: 0 24px 42px -32px rgba(15, 23, 42, 0.5);
+    }
+
+    .head {
+      padding: 20px 22px 16px;
+      border-bottom: 1px solid #dce5f1;
+      display: flex;
+      gap: 14px;
+      justify-content: space-between;
+      align-items: baseline;
+      flex-wrap: wrap;
+    }
+
+    .title {
+      margin: 0;
+      font-size: 32px;
+      letter-spacing: -0.025em;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .subtitle {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      max-width: 900px;
+      line-height: 1.45;
+    }
+
+    .legend {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #4f627b;
+    }
+
+    .legend span {
+      border: 1px solid #d8e1ee;
+      border-radius: 999px;
+      padding: 6px 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #fff;
+    }
+
+    .dot { width: 8px; height: 8px; border-radius: 50%; }
+
+    .board-wrap {
+      padding: 16px;
+      overflow: auto;
+    }
+
+    .board {
+      width: 1900px;
+      height: 980px;
+      position: relative;
+      border-radius: 14px;
+      border: 1px solid #d8e2ef;
+      background:
+        linear-gradient(#e8eef7 1px, transparent 1px),
+        linear-gradient(90deg, #e8eef7 1px, transparent 1px),
+        #f8fafd;
+      background-size: 28px 28px;
+      overflow: hidden;
+    }
+
+    .lane-label {
+      position: absolute;
+      left: 20px;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #5f6f86;
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid #d8e2ef;
+      border-radius: 999px;
+      padding: 4px 10px;
+      z-index: 3;
+    }
+
+    .node {
+      position: absolute;
+      width: 220px;
+      min-height: 126px;
+      padding: 12px 12px 10px;
+      border-radius: 12px;
+      background: var(--card);
+      border: 1px solid #d3deed;
+      border-left: 4px solid #d3deed;
+      box-shadow: 0 10px 18px -14px rgba(15, 23, 42, 0.45);
+      z-index: 2;
+    }
+
+    .node .num {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 11px;
+      color: #6b7e97;
+      display: inline-block;
+      margin-bottom: 5px;
+    }
+
+    .node .name {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      line-height: 1.2;
+    }
+
+    .node .why {
+      margin: 7px 0 0;
+      font-size: 11.5px;
+      line-height: 1.36;
+      color: var(--muted);
+    }
+
+    .onboarding { border-left-color: var(--onboarding); }
+    .discovery { border-left-color: var(--discover); }
+    .pipeline { border-left-color: var(--pipeline); }
+    .profile { border-left-color: var(--profile); }
+
+    svg.links {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .link {
+      fill: none;
+      stroke: var(--line);
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .link.soft {
+      stroke: var(--line-soft);
+      stroke-width: 1.8;
+    }
+
+    .link.dashed {
+      stroke-dasharray: 6 6;
+    }
+
+    .label {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 10.5px;
+      letter-spacing: 0.03em;
+      fill: #4f627b;
+    }
+
+    .tab-note {
+      position: absolute;
+      left: 60px;
+      bottom: 18px;
+      padding: 10px 12px;
+      border: 1px solid #d8e2ef;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.96);
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 11px;
+      color: #4f627b;
+      z-index: 3;
+      line-height: 1.45;
+    }
+
+    .tab-note strong { color: #22344f; }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="head">
+      <div>
+        <h1 class="title">CareConnect Wireflow Node Graph</h1>
+        <p class="subtitle">Minimal mode (default): only primary transitions are shown, with secondary/verbose routing removed for clarity.</p>
+      </div>
+      <div class="legend">
+        <span><i class="dot" style="background: var(--onboarding)"></i>Onboarding</span>
+        <span><i class="dot" style="background: var(--discover)"></i>Discovery</span>
+        <span><i class="dot" style="background: var(--pipeline)"></i>Intros & Tours</span>
+        <span><i class="dot" style="background: var(--profile)"></i>Profile</span>
+      </div>
+    </header>
+
+    <section class="board-wrap">
+      <div class="board">
+        <span class="lane-label" style="top: 18px;">Onboarding Path</span>
+        <span class="lane-label" style="top: 258px;">Discovery Path</span>
+        <span class="lane-label" style="top: 478px;">Intro / Tour Pipeline</span>
+        <span class="lane-label" style="top: 718px;">Profile Management</span>
+
+        <svg class="links" viewBox="0 0 1900 980" preserveAspectRatio="none" aria-hidden="true">
+          <defs>
+            <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+              <path d="M0 0 L10 5 L0 10 z" fill="#7e91aa"></path>
+            </marker>
+          </defs>
+
+          <path class="link" marker-end="url(#arrow)" d="M280 143 L320 143"/>
+          <path class="link" marker-end="url(#arrow)" d="M540 143 L580 143"/>
+          <path class="link" marker-end="url(#arrow)" d="M800 143 L840 143"/>
+          <path class="link" marker-end="url(#arrow)" d="M1060 143 L1100 143"/>
+          <path class="link" marker-end="url(#arrow)" d="M1320 143 L1360 143"/>
+
+          <path class="link" marker-end="url(#arrow)" d="M178 206 C238 230, 260 286, 320 310"/>
+          <path class="link" marker-end="url(#arrow)" d="M540 313 C900 318, 1150 255, 1360 170"/>
+
+          <path class="link" marker-end="url(#arrow)" d="M1470 206 L1470 320"/>
+          <path class="link" marker-end="url(#arrow)" d="M1580 383 L1640 383"/>
+          <path class="link" marker-end="url(#arrow)" d="M1640 362 L1580 362"/>
+
+          <path class="link" marker-end="url(#arrow)" d="M1360 420 C1270 485, 1210 530, 1150 583"/>
+
+          <path class="link" marker-end="url(#arrow)" d="M1150 583 L1170 583"/>
+          <path class="link" marker-end="url(#arrow)" d="M1390 583 L1410 583"/>
+          <path class="link" marker-end="url(#arrow)" d="M1630 583 L1650 583"/>
+          <path class="link" marker-end="url(#arrow)" d="M1870 584 C1860 675, 1090 690, 1060 604"/>
+
+          <path class="link dashed" marker-end="url(#arrow)" d="M1380 200 C1230 260, 1080 430, 1040 520"/>
+          <path class="link dashed" marker-end="url(#arrow)" d="M1040 646 L1040 760"/>
+          <path class="link dashed" marker-end="url(#arrow)" d="M1040 760 C920 690, 900 290, 1360 180"/>
+
+          <path class="link" marker-end="url(#arrow)" d="M1150 823 L1170 823"/>
+          <path class="link" marker-end="url(#arrow)" d="M1390 804 L1150 804"/>
+          <path class="link" marker-end="url(#arrow)" d="M1150 850 C1260 850, 1320 850, 1410 823"/>
+          <path class="link" marker-end="url(#arrow)" d="M1630 804 C1540 790, 1400 790, 1150 804"/>
+        </svg>
+
+        <article class="node onboarding" style="left: 60px; top: 80px;">
+          <span class="num">01</span>
+          <h3 class="name">Splash</h3>
+          <p class="why">Single entry point so both new and returning paths begin from one stable node.</p>
+        </article>
+
+        <article class="node onboarding" style="left: 320px; top: 80px;">
+          <span class="num">02</span>
+          <h3 class="name">Sign Up</h3>
+          <p class="why">Connected directly from Splash to establish the account-holder record before intake.</p>
+        </article>
+
+        <article class="node onboarding" style="left: 320px; top: 250px;">
+          <span class="num">03</span>
+          <h3 class="name">Login</h3>
+          <p class="why">Parallel branch for returning users; links back into Search while skipping setup screens.</p>
+        </article>
+
+        <article class="node onboarding" style="left: 580px; top: 80px;">
+          <span class="num">04</span>
+          <h3 class="name">Setup 1</h3>
+          <p class="why">Begins loved-one capture, so it sits immediately after account creation.</p>
+        </article>
+
+        <article class="node onboarding" style="left: 840px; top: 80px;">
+          <span class="num">05</span>
+          <h3 class="name">Setup 2</h3>
+          <p class="why">Budget/funding step placed mid-intake because it hard-filters Search results.</p>
+        </article>
+
+        <article class="node onboarding" style="left: 1100px; top: 80px;">
+          <span class="num">06</span>
+          <h3 class="name">Setup 3</h3>
+          <p class="why">Finalizes preferences (amenities, response SLA, cultural fit) before matching starts.</p>
+        </article>
+
+        <article class="node discovery" style="left: 1360px; top: 80px;">
+          <span class="num">07</span>
+          <h3 class="name">Search</h3>
+          <p class="why">Primary hub; receives onboarding exits and fans into profile discovery or intro workflows.</p>
+        </article>
+
+        <article class="node discovery" style="left: 1360px; top: 320px;">
+          <span class="num">08</span>
+          <h3 class="name">Home Profile</h3>
+          <p class="why">Trust-and-convert node where families review evidence, then send intros or book tours.</p>
+        </article>
+
+        <article class="node discovery" style="left: 1640px; top: 320px;">
+          <span class="num">09</span>
+          <h3 class="name">OpenDoor Live</h3>
+          <p class="why">Contextual trust detour from Home Profile with explicit path back to that same home.</p>
+        </article>
+
+        <article class="node pipeline" style="left: 930px; top: 520px;">
+          <span class="num">12</span>
+          <h3 class="name">Active Intros</h3>
+          <p class="why">Operational queue where lead states are tracked; receives intro/tour updates from multiple paths.</p>
+        </article>
+
+        <article class="node pipeline" style="left: 1170px; top: 520px;">
+          <span class="num">13</span>
+          <h3 class="name">Intro Detail</h3>
+          <p class="why">Scoped chat/timeline under one intro, so communication stays tied to a specific provider lead.</p>
+        </article>
+
+        <article class="node pipeline" style="left: 1410px; top: 520px;">
+          <span class="num">10</span>
+          <h3 class="name">Schedule Tour</h3>
+          <p class="why">Commit action reached from Home Profile or Intro Detail once family trust is high enough.</p>
+        </article>
+
+        <article class="node pipeline" style="left: 1650px; top: 520px;">
+          <span class="num">11</span>
+          <h3 class="name">Tour Confirmed</h3>
+          <p class="why">Confirmation checkpoint that loops status back into Active Intros; calendar stays native device-side.</p>
+        </article>
+
+        <article class="node profile" style="left: 930px; top: 760px;">
+          <span class="num">14</span>
+          <h3 class="name">Profile</h3>
+          <p class="why">Third tab root for user+loved-one overview and routing into separate edit experiences.</p>
+        </article>
+
+        <article class="node profile" style="left: 1170px; top: 760px;">
+          <span class="num">15</span>
+          <h3 class="name">Edit Profile</h3>
+          <p class="why">Account-holder-only edit branch; returns cleanly to Profile without touching match score.</p>
+        </article>
+
+        <article class="node profile" style="left: 1410px; top: 760px;">
+          <span class="num">16</span>
+          <h3 class="name">Edit Loved One</h3>
+          <p class="why">Separate branch for care preferences to safely trigger re-scoring on save.</p>
+        </article>
+
+        <aside class="tab-note">
+          <strong>Primary tab graph</strong><br>
+          [07 Search] <-> [12 Active Intros] <-> [14 Profile]
+        </aside>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
